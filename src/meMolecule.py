@@ -1,5 +1,5 @@
 import numpy as np
-import openbabel, pybel
+from openbabel import openbabel, pybel
 from ase import Atoms
 from ase.io import write
 from lxml import etree as ET
@@ -15,7 +15,10 @@ class meMolecule():
         self.ase_mol = ase_mol
         self.cml = kwargs.get('cml', None)
         if self.cml == None:
-            self.cml = self.write_geometry()
+            try:
+                self.cml = self.write_geometry()
+            except:
+                pass
         self.name = kwargs.get('name', 'temp_name')
         self.zpe = kwargs.get('zpe', 0)
         self.newBonds = kwargs.get('newBonds', None)
@@ -38,8 +41,11 @@ class meMolecule():
         self.epsilon = kwargs.get('epsilon', 500)
         self.sigma = kwargs.get('sigma', 5)
         self.de_down = kwargs.get('de_down', 200)
-        self.add_properties()
-        for rot, bond in zip(self.hinderedRotors,self.hinderedBonds):
+        try:
+            self.add_properties()
+        except:
+            pass
+        for rot, bond in zip(self.hinderedRotors, self.hinderedAngles,self.hinderedBonds):
             self.add_hindered_rotor(rot,bond)
 
     @classmethod
@@ -102,7 +108,7 @@ class meMolecule():
             b.set('atomRefs2','a' + str(float(changed[0])+1) + ' ' + 'a' +str(float(changed[1])+1))
             b.set('order', '1')
 
-    def add_hindered_rotor(self, rotor_array, bond_idx):
+    def add_hindered_rotor(self, rotor_array, angle_array, bond_idx):
         # Set up main me:mesmer xml tag and link to all the schemas
         hind = ET.SubElement(self.cml,'{http://www.chem.leeds.ac.uk/mesmer}ExtraDOSCMethod')
         hind.set('{http://www.w3.org/2001/XMLSchema-instance}type', "me:HinderedRotorQM1D")
@@ -114,13 +120,12 @@ class meMolecule():
         hind.set('format', "numerical")
         hind.set('units', "kj/mol")
         hind.set('expansionSize', "10")
-        angle = 0
         inc = 360 / (len(rotor_array) -1)
-        for h in rotor_array:
+        for h,a in zip(rotor_array, angle_array):
             point = ET.SubElement(potential, '{http://www.chem.leeds.ac.uk/mesmer}PotentialPoint')
-            point.set('angle', str(angle))
+            point.set('angle', str(a))
             point.set('potential', str(h))
-            angle += inc
+
 
         # now find the appropriate bond in the list to mark
         bonds = self.cml.findall("bondArray")[0].findall("bond")

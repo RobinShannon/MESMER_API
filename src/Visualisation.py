@@ -59,7 +59,7 @@ def plotPES(me):
             x2 = x1 + ((x3 - x1) / 2)
 
         # get ts energy if present, if not set it to between the reactant and product energy
-        if me.reactions_dict[i].ts == 'none':
+        if me.reactions_dict[i].ts == None:
             if y1 > y3:
                 y2 = y3 +  ((y1 - y3) / 4)
             else:
@@ -123,3 +123,47 @@ def plotPES(me):
         top=False,  # ticks along the top edge are off
         labelbottom=False)  # labels along the bottom edge are off
     plt.savefig('myFigure.png')
+
+def plot_species_profile(me, Temperature = None, Pressure = None, Species = []):
+    if Pressure == None:
+        profiles = []
+        for sp in me.species_profile_list:
+            if float(sp.T) == float(Temperature):
+                profiles.append(sp)
+        plot_profile(profiles, Species)
+    elif Temperature == None:
+        profiles = []
+        for sp in me.species_profile_list:
+            if float(sp.P) == float(Pressure):
+                profiles.append(sp)
+        plot_profile(profiles, Species)
+    elif Temperature != None and Pressure != None:
+        for sp in me.species_profile_list:
+            if sp.P == Pressure:
+                plot_profile(sp, Species)
+    else:
+        print("must specify at least one temperature or pressure to plot")
+
+
+def plot_profile(sp, species):
+
+    x = np.arange(-11,5.1,0.1)
+    plt.ylim(0.0, 1.0)
+    if len(sp) != 0:
+        style = ["solid","dashed","dotted"]
+        cols = ["darkcyan","orange","darkred"]
+        length = min(3,len(sp))
+        for i in range(0,length):
+            for co,mol in enumerate(species):
+                y = sp[i].get_species(mol)
+                plt.plot(x, y, label=str(mol)+'_' + str(i), linestyle=style[i], c=cols[co], linewidth=2.0)
+        plt.legend()
+        plt.show()
+    else:
+        for mol in species:
+            y = sp.get_species(mol)
+            plt.plot(x, y, label=str(mol))
+        plt.legend()
+        plt.show()
+
+

@@ -1,6 +1,8 @@
 from lxml import etree as ET
 from MESMER_API.src.meReaction import meReaction
 from MESMER_API.src.meMolecule import meMolecule
+from MESMER_API.src.mePT import mePT
+from MESMER_API.src.meSpeciesProfile import meSpeciesProfile
 
 
 class MESMER_API():
@@ -9,8 +11,8 @@ class MESMER_API():
         # Initialise empty dicts for holding different sections of the xml
         self.reactions_dict = {}
         self.mols_dict = {}
-        self.pt_dict = {}
-        self.species_profile_dict = {}
+        self.pt_list = []
+        self.species_profile_list = []
         self.bartis_widom_dict = {}
 
     def create_xml_shell(temperature = 298, pressure = 1):
@@ -21,10 +23,11 @@ class MESMER_API():
         # Parse mesmer xml to with minidom
         input = ET.parse(iPath)
         doc = input.getroot()
-
+        self.read_species_profiles(doc)
         # Read the reactions first. Add reactions to to reactions_dict and then add the species from each reaction to the
         # mols dict
         self.read_reactions(doc, self.reactions_dict, self.mols_dict)
+
         # Then read the experimental conditions. Add the bath gas to the mols_dict.
         #self.read_pts(doc)
         # TODO Read the control section of the input
@@ -88,8 +91,38 @@ class MESMER_API():
                 mols_dict[name] = new_mol
 
     def read_pts(self, doc):
-        pt = doc.findall("{http://www.chem.leeds.ac.uk/mesmer}conditions")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")
-        pts = pt[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTpair")
-        newPT = mePT(pts)
+        pressure_temps = doc.findall("{http://www.chem.leeds.ac.uk/mesmer}conditions")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")
+        pts = pressure_temps[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTpair")
+        for pt in pts:
+            T = pt.attrib["{http://www.chem.leeds.ac.uk/mesmer}T"]
+            P = pt.attrib["{http://www.chem.leeds.ac.uk/mesmer}T"]
+            try:
+                precision = pt.attrib["{http://www.chem.leeds.ac.uk/mesmer}T"]
+            except:
+                precision = 'd'
+            newPT = mePT(T,P,precision)
+            self.pt_list.append(newPT)
+
+    def read_species_profiles(self, doc):
+        species_profile = doc.findall("{http://www.chem.leeds.ac.uk/mesmer}analysis")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}populationList")
+        for sp in species_profile:
+            T = sp.attrib["T"]
+            P = sp.attrib["conc"]
+            times = sp.findall("{http://www.chem.leeds.ac.uk/mesmer}population")
+            species = times[0].findall("{http://www.chem.leeds.ac.uk/mesmer}pop")
+            names = []
+            profile = []
+            for s in species:
+                n = s.attrib["ref"]
+                names.append(n)
+                profile.append([])
+            for t in times:
+                species2 = t.findall("{http://www.chem.leeds.ac.uk/mesmer}pop")
+                for i,s2 in enumerate(species2):
+                    profile[i].append(float(s2.text))
+            species_profile = meSpeciesProfile(names,profile,T,P)
+            self.species_profile_list.append(species_profile)
+
+    #def read_BW_rates
 
 
