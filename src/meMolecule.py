@@ -175,7 +175,7 @@ class meMolecule():
         mol.addh()
         mol.make3D()
         str = mol.write(format = 'cml')
-        lines = str.split('\n', 2)[-1]
+        lines = str.split('\n', 1)[-1]
         print(lines)
         cml = ET.fromstring(lines)
         return cml
