@@ -97,7 +97,6 @@ class meMolecule():
         geom = self.write_geometry()
 
     def add_bonds(self, newBonds):
-        r = self.cml.get_root
         bonds = self.cml.findall("bondArray")[0]
         for changed in newBonds:
             b = ET.SubElement(bonds,'bond')
