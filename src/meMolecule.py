@@ -175,7 +175,7 @@ class meMolecule():
         mol.make3D()
         str = mol.write(format = 'cml')
         cml = ET.fromstring(str)
-        print(cml)
+        print(str)
         return cml
 
     def write_cml(self, file = '-'):
