@@ -13,10 +13,7 @@ class meMolecule():
         ET.register_namespace('me', 'http://www.chem.leeds.ac.uk/mesmer')
         ET.register_namespace('xsi', 'http://www.w3.org/2001/XMLSchema-instance')
         self.ase_mol = ase_mol
-        self.cml = kwargs.get('cml', None)
-        print(self.cml)
-        if self.cml is None:
-            self.cml = self.write_geometry()
+        self.cml = self.write_geometry()
         self.name = kwargs.get('name', 'temp_name')
         self.zpe = kwargs.get('zpe', 0)
         self.newBonds = kwargs.get('newBonds', None)
