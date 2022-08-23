@@ -97,6 +97,7 @@ class meMolecule():
         geom = self.write_geometry()
 
     def add_bonds(self, newBonds):
+        r = self.cml.get_root
         bonds = self.cml.findall("bondArray")[0]
         for changed in newBonds:
             b = ET.SubElement(bonds,'bond')
@@ -174,8 +175,9 @@ class meMolecule():
         mol.addh()
         mol.make3D()
         str = mol.write(format = 'cml')
-        cml = ET.fromstring(str)
-        print(str)
+        lines = str.split('\n', 2)[-1]
+        print(lines)
+        cml = ET.fromstring(lines)
         return cml
 
     def write_cml(self, file = '-'):
