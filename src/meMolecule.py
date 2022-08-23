@@ -15,10 +15,7 @@ class meMolecule():
         self.ase_mol = ase_mol
         self.cml = kwargs.get('cml', None)
         if self.cml == None:
-            try:
-                self.cml = self.write_geometry()
-            except:
-                pass
+            self.cml = self.write_geometry()
         self.name = kwargs.get('name', 'temp_name')
         self.zpe = kwargs.get('zpe', 0)
         self.newBonds = kwargs.get('newBonds', None)
