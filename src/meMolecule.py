@@ -20,6 +20,7 @@ class meMolecule():
         self.vibFreqs = kwargs.get('vibFreqs',[])
         self.hinderedRotors = kwargs.get('hinderedRotors', [])
         self.hinderedBonds = kwargs.get('hinderedBonds', [])
+        self.hinderedAngles = kwargs.get('hinderedAngles', [])
         if self.newBonds != None:
             self.add_bonds(self.newBonds)
         atom_num = ase_mol.get_atomic_numbers()
@@ -178,7 +179,7 @@ class meMolecule():
         str = mol.write(format = 'cml')
         lines = str.split('\n', 1)[-1]
         print(lines)
-        cml = ET.fromstring(lines)
+        cml = ET.fromstring(lines).getroot()
         return cml
 
     def write_cml(self, file = '-'):
