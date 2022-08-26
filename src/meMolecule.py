@@ -9,7 +9,7 @@ import sys
 
 class meMolecule():
 
-    def __init__(self, ase_mol, role = 'modelled', **kwargs):
+    def __init__(self, ase_mol, role = 'modelled', coupled=False, **kwargs):
         ET.register_namespace('me', 'http://www.chem.leeds.ac.uk/mesmer')
         ET.register_namespace('xsi', 'http://www.w3.org/2001/XMLSchema-instance')
         self.ase_mol = ase_mol
@@ -41,8 +41,11 @@ class meMolecule():
             self.add_properties()
         except:
             pass
-        for rot, bond in zip(self.hinderedRotors, self.hinderedAngles,self.hinderedBonds):
-            self.add_hindered_rotor(rot,bond)
+        if coupled:
+            self.add_hindered_rotor_coupled(self.hinderedRotors, self.hinderedAngles,self.hinderedBonds)
+        else:
+            for rot, bond, angle in zip(self.hinderedRotors, self.hinderedAngles,self.hinderedBonds):
+                self.add_hindered_rotor(rot,bond,angle)
 
     @classmethod
     def from_cml(cls,cml, name, role = 'modelled'):
@@ -98,13 +101,14 @@ class meMolecule():
         geom = self.write_geometry()
 
     def add_bonds(self, newBonds):
-        print(str(self.cml))
-        bonds = self.cml.findall("bondArray")
+        bonds = self.cml.findall("{http://www.xml-cml.org/schema}bondArray")[0]
         print(str(bonds))
         for changed in newBonds:
-            b = ET.SubElement(bonds,'bond')
-            b.set('atomRefs2','a' + str(float(changed[0])+1) + ' ' + 'a' +str(float(changed[1])+1))
+            b = ET.SubElement(bonds,'{http://www.xml-cml.org/schema}bond')
+            b.set('atomRefs2','a' + str(int(changed[0])) + ' ' + 'a' +str(int(changed[1])))
             b.set('order', '1')
+            b.text = None
+        ET.indent(bonds, space='\n    ')
 
     def add_hindered_rotor(self, rotor_array, angle_array, bond_idx):
         # Set up main me:mesmer xml tag and link to all the schemas
@@ -112,7 +116,7 @@ class meMolecule():
         hind.set('{http://www.w3.org/2001/XMLSchema-instance}type', "me:HinderedRotorQM1D")
 
         bond_id = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}bondRef')
-        bond_id.text = 'bond'+str(bond_idx[0]+1)+str(bond_idx[1]+1)
+        bond_id.text = 'bond'+str(bond_idx[0])+str(bond_idx[1])
 
         potential = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}HinderedRotorPotential')
         hind.set('format', "numerical")
@@ -123,15 +127,48 @@ class meMolecule():
             point = ET.SubElement(potential, '{http://www.chem.leeds.ac.uk/mesmer}PotentialPoint')
             point.set('angle', str(a))
             point.set('potential', str(h))
-
+        inert = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}CalculateInternalRotorInertia')
+        inert.set('phaseDifference', '0')
 
         # now find the appropriate bond in the list to mark
-        bonds = self.cml.findall("bondArray")[0].findall("bond")
+
+        bonds = self.cml.findall("{http://www.xml-cml.org/schema}bondArray")[0].findall("{http://www.xml-cml.org/schema}bond")
         for bond in bonds:
             pid = bond.attrib["atomRefs2"]
-            if pid == str('a'+str(bond_idx[0]+1) + ' a' + str(bond_idx[1]+1)) or pid == str('a'+str(bond_idx[1]+1) + ' a' + str(bond_idx[0]+1)):
-                bond.set('id', 'bond'+str(bond_idx[0]+1)+str(bond_idx[1]+1) )
+            if pid == str('a'+str(bond_idx[0]) + ' a' + str(bond_idx[1])) or pid == str('a'+str(bond_idx[1]) + ' a' + str(bond_idx[0])):
+                bond.set('id', 'bond'+str(bond_idx[0])+ ' ' + str(bond_idx[1]) )
         ET.indent(hind, space = '\n    ')
+
+    def add_hindered_rotor_coupled(self, rotor_array, angle_array, bond_idx):
+        # Set up main me:mesmer xml tag and link to all the schemas
+        couple = ET.SubElement(self.cml,'{http://www.chem.leeds.ac.uk/mesmer}ExtraDOSCMethod')
+        couple.set('{http://www.w3.org/2001/XMLSchema-instance}type', '{http://www.chem.leeds.ac.uk/mesmer}ClassicalCoupledRotors')
+        MC = ET.SubElement(couple,'{http://www.xml-cml.org/schema}MCPoints')
+        MC.text='1000'
+        RotArr = ET.SubElement(couple, '{http://www.chem.leeds.ac.uk/mesmer}RotorArray')
+        for rot, angle, bond in zip(rotor_array, angle_array, bond_idx):
+            hind = ET.SubElement(RotArr, '{http://www.chem.leeds.ac.uk/mesmer}Rotor')
+            bond_id = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}bondRef')
+            bond_id.text = 'bond'+str(bond[0])+str(bond[1])
+
+            hind = ET.SubElement(RotArr, '{http://www.chem.leeds.ac.uk/mesmer}HinderedRotorPotential')
+            hind.set('format', "numerical")
+            hind.set('units', "kj/mol")
+            hind.set('expansionSize', "10")
+            for h,a in zip(rot, angle):
+                point = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}PotentialPoint')
+                point.set('angle', str(a))
+                point.set('potential', str(h))
+            inert = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}CalculateInternalRotorInertia')
+            inert.set('phaseDifference', '0')
+
+        # now find the appropriate bond in the list to mark
+        bonds = self.cml.findall("{http://www.xml-cml.org/schema}bondArray")[0].findall("{http://www.xml-cml.org/schema}bond")
+        for bond in bonds:
+            pid = bond.attrib["atomRefs2"]
+            if pid == str('a'+str(bond_idx[0]) + ' a' + str(bond_idx[1])) or pid == str('a'+str(bond_idx[1]) + ' a' + str(bond_idx[0])):
+                bond.set('id', 'bond'+str(bond_idx[0])+ ' ' + str(bond_idx[1]) )
+        ET.indent(couple, space = '\n    ')
 
     def add_properties(self):
         # Set up main me:mesmer xml tag and link to all the schemas
@@ -179,11 +216,12 @@ class meMolecule():
         str = mol.write(format = 'cml')
         lines = str.split('\n', 1)[-1]
         print(lines)
-        cml = ET.fromstring(lines).getroot()
+        cml = ET.fromstring(lines)
         return cml
 
     def write_cml(self, file = '-'):
         self.cml.set('id', str(self.name))
+        ET.indent(self.cml, space='\n    ')
         xml = ET.tostring(self.cml, encoding='unicode', pretty_print=True)
         xml = xml.splitlines()
         strip_lines = [line for line in xml if line.strip() != ""]
