@@ -148,15 +148,15 @@ class meMolecule():
         RotArr = ET.SubElement(couple, '{http://www.chem.leeds.ac.uk/mesmer}RotorArray')
         for rot, angle, bond in zip(rotor_array, angle_array, bond_idx):
             hind = ET.SubElement(RotArr, '{http://www.chem.leeds.ac.uk/mesmer}Rotor')
-            bond_id = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}bondRef')
-            bond_id.text = 'bond'+str(bond[0])+str(bond[1])
+            bond_string = 'bond'+str(bond[0])+ '_' +str(bond[1])
+            hind.set('bondRef', bond_string)
 
-            hind = ET.SubElement(RotArr, '{http://www.chem.leeds.ac.uk/mesmer}HinderedRotorPotential')
-            hind.set('format', "numerical")
-            hind.set('units', "kj/mol")
-            hind.set('expansionSize', "10")
+            hind_pot = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}HinderedRotorPotential')
+            hind_pot.set('format', "numerical")
+            hind_pot.set('units', "kJ/mol")
+            hind_pot.set('expansionSize', "10")
             for h,a in zip(rot, angle):
-                point = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}PotentialPoint')
+                point = ET.SubElement(hind_pot, '{http://www.chem.leeds.ac.uk/mesmer}PotentialPoint')
                 point.set('angle', str(a))
                 point.set('potential', str(h))
             inert = ET.SubElement(hind, '{http://www.chem.leeds.ac.uk/mesmer}CalculateInternalRotorInertia')
