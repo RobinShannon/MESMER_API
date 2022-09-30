@@ -167,7 +167,7 @@ class meMolecule():
         for bond in bonds:
             pid = bond.attrib["atomRefs2"]
             if pid == str('a'+str(bond_idx[0]) + ' a' + str(bond_idx[1])) or pid == str('a'+str(bond_idx[1]) + ' a' + str(bond_idx[0])):
-                bond.set('id', 'bond'+str(bond_idx[0])+ ' ' + str(bond_idx[1]) )
+                bond.set('id', 'bond'+str(bond_idx[0])+ '_' + str(bond_idx[1]) )
         ET.indent(couple, space = '\n    ')
 
     def add_properties(self):
