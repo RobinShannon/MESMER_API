@@ -1,8 +1,10 @@
+import copy
+
 from lxml import etree as ET
-from MESMER_API.src.meReaction import meReaction
-from MESMER_API.src.meMolecule import meMolecule
-from MESMER_API.src.mePT import mePT
-from MESMER_API.src.meSpeciesProfile import meSpeciesProfile
+from src.meReaction import meReaction
+from src.meMolecule import meMolecule
+from src.mePT import mePT
+from src.meSpeciesProfile import meSpeciesProfile
 
 
 class MESMER_API():
@@ -14,16 +16,52 @@ class MESMER_API():
         self.pt_list = []
         self.species_profile_list = []
         self.bartis_widom_dict = {}
+        self.tree = ''
 
     def create_xml_shell(temperature = 298, pressure = 1):
         return
 
+    def modify_in_place(self, energies_dict):
+        doc = self.tree.getroot()
+        doc2 = copy.deepcopy(doc)
+        mols = doc2.findall("{http://www.xml-cml.org/schema}moleculeList")[0].findall(
+            "{http://www.xml-cml.org/schema}molecule")
+        for mol in mols:
+            nid = mol.attrib["id"]
+            if nid in energies_dict.keys():
+                zpe = energies_dict[nid]
+                props = mol.findall("{http://www.xml-cml.org/schema}propertyList")[0].findall(
+                    "{http://www.xml-cml.org/schema}property")
+                for prop in props:
+                    pid = prop.attrib["dictRef"]
+                    if pid == "me:ZPE":
+                        zpe_orriginal = float(prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text)
+                        zpe_modified = zpe_orriginal + zpe
+                        prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text = str(zpe_modified)
+        tree = ET.ElementTree(doc2)
+        tree.write("temp.xml")
+
+    def get_chi_sq(self):
+        doc = self.tree.getroot()
+        cond = doc.findall("{http://www.chem.leeds.ac.uk/mesmer}conditions")[0]
+        PTs = cond.findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTpair")
+        chi_total = []
+        for pt in PTs:
+            eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")
+            err = eig[0].attrib["error"]
+            calc = eig[0].attrib["calcVal"]
+            exp = eig[0].text
+            chi_total.append(abs(float(calc) - float(exp))/ float(err))
+        return chi_total
 
     def parse_me_xml(self, iPath):
         # Parse mesmer xml to with minidom
-        input = ET.parse(iPath)
-        doc = input.getroot()
-        self.read_species_profiles(doc)
+        self.tree = ET.parse(iPath)
+        doc = self.tree.getroot()
+        try:
+            self.read_species_profiles(doc)
+        except:
+            pass
         # Read the reactions first. Add reactions to to reactions_dict and then add the species from each reaction to the
         # mols dict
         self.read_reactions(doc, self.reactions_dict, self.mols_dict)
@@ -123,6 +161,12 @@ class MESMER_API():
             species_profile = meSpeciesProfile(names,profile,T,P)
             self.species_profile_list.append(species_profile)
 
-    #def read_BW_rates
+    def read_BW_rates(self,doc):
+        PTs = doc.findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTpair")
+        for pt in PTs:
+            eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")
+            err = eig[0].attrib["error"]
+            calc = eig[0].attrib["calculated"]
+            exp = eig[0].text
 
 
