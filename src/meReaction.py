@@ -7,7 +7,7 @@ import math
 
 class meReaction():
 
-    def __init__(self, reacs, prods, name, method='ILT', root=None, ts=None,):
+    def __init__(self, reacs, prods, name, method='ILT', root=None, ts=None):
         self.reacs = reacs
         self.prods = prods
         self.ts = ts
@@ -43,7 +43,8 @@ class meReaction():
         if len(self.prods) == 2:
             prod2 = ET.SubElement(reaction, 'product')
             mol2 = ET.SubElement(prod2, 'molecule')
-            mol2.set('role', 'excessProduct')
+            mol2.set('role', 'sink')
+            mol.set('role', 'sink')
             mol2.set('ref', str(self.prods[1]))
 
         if not self.ts == None:
