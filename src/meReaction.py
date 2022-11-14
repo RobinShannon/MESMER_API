@@ -24,6 +24,10 @@ class meReaction():
     def get_cml_snippet(self):
         ET.register_namespace('me', 'http://www.chem.leeds.ac.uk/mesmer')
         ET.register_namespace('xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+        if len(self.prods) == 2 and len(self.reacs) == 1:
+            temp = self.reacs
+            self.reacs = self.prods
+            self.prods = temp
         # Set up main me:mesmer xml tag and link to all the schemas
         reaction = ET.Element('reaction')
         reaction.set('id', str(self.name))
@@ -33,33 +37,26 @@ class meReaction():
         mol.set('ref', str(self.reacs[0]))
         if len(self.reacs) == 2:
             reac2 = ET.SubElement(reaction, 'reactant')
-            mol2 = ET.SubElement(reac, 'molecule')
+            mol2 = ET.SubElement(reac2, 'molecule')
             mol2.set('role', 'excessReactant')
             mol2.set('ref', str(self.reacs[1]))
         prod = ET.SubElement(reaction, 'product')
         mol = ET.SubElement(prod, 'molecule')
         mol.set('role', 'modelled')
         mol.set('ref', str(self.prods[0]))
-        if len(self.prods) == 2:
-            prod2 = ET.SubElement(reaction, 'product')
-            mol2 = ET.SubElement(prod2, 'molecule')
-            mol2.set('role', 'sink')
-            mol.set('role', 'sink')
-            mol2.set('ref', str(self.prods[1]))
 
         if not self.ts == None:
-            for ts in self.ts:
-                ts = ET.SubElement(reaction, 'transitionState')
-                mol = ET.SubElement(ts, 'molecule')
-                mol.set('role', 'transitionState')
-                mol.set('ref', str(ts))
+            ts = ET.SubElement(reaction, 'transitionState')
+            mol = ET.SubElement(ts, 'molecule')
+            mol.set('role', 'transitionState')
+            mol.set('ref', str(ts))
             method = ET.SubElement(reaction, '{http://www.chem.leeds.ac.uk/mesmer}MCRCMethod')
             method.set('{http://www.w3.org/2001/XMLSchema-instance}type','RRKM')
             tunneling =  ET.SubElement(reaction, '{http://www.chem.leeds.ac.uk/mesmer}tunneling')
             tunneling.set('{http://www.w3.org/2001/XMLSchema-instance}type','Eckart')
         else:
             method = ET.SubElement(reaction, '{http://www.chem.leeds.ac.uk/mesmer}MCRCMethod')
-            method.set('{http://www.w3.org/2001/XMLSchema-instance}type','{http://www.chem.leeds.ac.uk/mesmer}MesmerILT')
+            method.set('{http://www.w3.org/2001/XMLSchema-instance}type','MesmerILT')
             A = ET.SubElement(method, '{http://www.chem.leeds.ac.uk/mesmer}preExponential')
             A.set('units',"cm3molecule-1s-1")
             A.text = '3e-10'
