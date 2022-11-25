@@ -197,7 +197,7 @@ class meMolecule():
         val5.text = ' '.join(str(item) for item in self.hessian)
         if self.role == 'ts':
             prop4 = ET.SubElement(propList, 'property')
-            prop4.set('dictRef', 'me:imFreq')
+            prop4.set('dictRef', 'me:imaginaryFrequency')
             val4 = ET.SubElement(prop4, 'scalar')
             val4.set('units', 'cm-1')
             val4.text = str(self.imaginary_freq)

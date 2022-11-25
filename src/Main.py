@@ -54,6 +54,23 @@ class MESMER_API():
             chi_total.append(abs(float(calc) - float(exp))/ float(err))
         return chi_total
 
+    def get_eigen_vs_expt(self):
+        doc = self.tree.getroot()
+        cond = doc.findall("{http://www.chem.leeds.ac.uk/mesmer}conditions")[0]
+        PTs = cond.findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTpair")
+        eigs_array = cond.findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")
+        Ts = []
+        exps = []
+        errs = []
+        calcs = []
+        for pt in PTs:
+            Ts.append(pt.attrib["T"])
+            eigs= pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")[0]
+            errs.append(eigs.attrib["error"])
+            calcs.append(eigs.attrib["calcVal"])
+            exps.append(eigs.text)
+        return [Ts,exps,errs,calcs]
+
     def parse_me_xml(self, iPath):
         # Parse mesmer xml to with minidom
         self.tree = ET.parse(iPath)

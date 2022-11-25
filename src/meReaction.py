@@ -7,7 +7,7 @@ import math
 
 class meReaction():
 
-    def __init__(self, reacs, prods, name, method='ILT', root=None, ts=None):
+    def __init__(self, reacs, prods, name, method='ILT', root=None, ts=None, ea = 0):
         self.reacs = reacs
         self.prods = prods
         self.ts = ts
@@ -16,6 +16,7 @@ class meReaction():
         self.method = method
         self.ilt_a = 1.0e-10
         self.ilt_n = 0
+        self.ilt_ea = ea
         if root == None:
             self.cml = self.get_cml_snippet()
         else:
@@ -49,9 +50,9 @@ class meReaction():
             ts = ET.SubElement(reaction, 'transitionState')
             mol = ET.SubElement(ts, 'molecule')
             mol.set('role', 'transitionState')
-            mol.set('ref', str(ts))
+            mol.set('ref', str(self.ts))
             method = ET.SubElement(reaction, '{http://www.chem.leeds.ac.uk/mesmer}MCRCMethod')
-            method.set('{http://www.w3.org/2001/XMLSchema-instance}type','RRKM')
+            method.set('{http://www.w3.org/2001/XMLSchema-instance}type','SimpleRRKM')
             tunneling =  ET.SubElement(reaction, '{http://www.chem.leeds.ac.uk/mesmer}tunneling')
             tunneling.set('{http://www.w3.org/2001/XMLSchema-instance}type','Eckart')
         else:
@@ -64,7 +65,7 @@ class meReaction():
             n.text = '0'
             EA = ET.SubElement(method, '{http://www.chem.leeds.ac.uk/mesmer}activationEnergy')
             EA.set('units', "kJ/mol")
-            EA.text = '0'
+            EA.text = str(self.ilt_ea)
             excessReactant =  ET.SubElement(reaction, '{http://www.chem.leeds.ac.uk/mesmer}excessReactantConc')
             excessReactant.text = '1E16'
         return reaction
