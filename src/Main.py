@@ -21,7 +21,7 @@ class MESMER_API():
     def create_xml_shell(temperature = 298, pressure = 1):
         return
 
-    def modify_in_place(self, energies_dict):
+    def modify_in_place(self, energies_dict, imFreqs_dict=None):
         doc = self.tree.getroot()
         doc2 = copy.deepcopy(doc)
         mols = doc2.findall("{http://www.xml-cml.org/schema}moleculeList")[0].findall(
@@ -38,6 +38,16 @@ class MESMER_API():
                         zpe_orriginal = float(prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text)
                         zpe_modified = zpe_orriginal + zpe
                         prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text = str(zpe_modified)
+            if imFreqs_dict is not None and nid in imFreqs_dict.keys():
+                imFreq = imFreqs_dict[nid]
+                props = mol.findall("{http://www.xml-cml.org/schema}propertyList")[0].findall(
+                    "{http://www.xml-cml.org/schema}property")
+                for prop in props:
+                    pid = prop.attrib["dictRef"]
+                    if pid == "me:imaginaryFrequencyScaleFactor":
+                        imFreq_orriginal = float(prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text)
+                        imFreq_modified = imFreq_orriginal + imFreq
+                        prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text = str(imFreq_modified)
         tree = ET.ElementTree(doc2)
         tree.write("temp.xml")
 

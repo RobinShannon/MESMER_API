@@ -47,10 +47,12 @@ me4 = MESMER_API()
 me4.parse_me_xml('4D.xml')
 me5 = MESMER_API()
 me5.parse_me_xml('OD.xml')
+me6 = MESMER_API()
+me6.parse_me_xml('1DOD.xml')
 
-inputs = [me,me2,me3,me4,me5]
+inputs = [me,me2,me3,me4,me5,me6]
 params = ['TS_COC=O_CO[C]=O', 'TS_COC=O_[CH2]OC=O']
-values = [-2.36, 1.07]
+values = [-2.04236176,  1.57146613]
 
 #sol=lm(get_chi, values, method='lm',diff_step=0.01, args=(inputs,params))
 #print('variables = ' + str(sol.x))
