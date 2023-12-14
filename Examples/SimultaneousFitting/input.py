@@ -9,12 +9,12 @@ def get_chi( values, inputs, params):
     for inp in inputs:
         inp.modify_in_place(mol_dict)
         #run mesmer
-        p = Popen(['/Users/chmrsh/Documents/MacMESMER/mesmerNormal','temp.xml'], stdout=PIPE, stderr=PIPE )
+        p = Popen(['/Users/chmrsh/Documents/mesmerStoch/bin/mesmer','temp.xml'], stdout=PIPE, stderr=PIPE )
         stdout, stderr = p.communicate()
         out = stderr.decode("utf-8")
         out = MESMER_API()
         out.parse_me_xml('Mesmer_out.xml')
-        chi += out.get_chi_sq()
+        chi += np.sum(out.get_chi_sq())
     return chi
 
 def sumarise( values, inputs, params):
@@ -23,7 +23,7 @@ def sumarise( values, inputs, params):
     for i,inp in enumerate(inputs):
         inp.modify_in_place(mol_dict)
         #run mesmer
-        p = Popen(['/Users/chmrsh/Documents/MacMESMER/mesmerNormal','temp.xml'], stdout=PIPE, stderr=PIPE )
+        p = Popen(['/Users/chmrsh/Documents/mesmerStoch/bin/mesmer','temp.xml'], stdout=PIPE, stderr=PIPE )
         stdout, stderr = p.communicate()
         out = stderr.decode("utf-8")
         out = MESMER_API()
@@ -50,13 +50,18 @@ me5.parse_me_xml('OD.xml')
 me6 = MESMER_API()
 me6.parse_me_xml('1DOD.xml')
 
-inputs = [me,me2,me3,me4,me5,me6]
+inputs = [me,me2]
 params = ['TS_COC=O_CO[C]=O', 'TS_COC=O_[CH2]OC=O']
 values = [-2.04236176,  1.57146613]
 
-#sol=lm(get_chi, values, method='lm',diff_step=0.01, args=(inputs,params))
-#print('variables = ' + str(sol.x))
-#print('chi values = ' + str(sol.fun))
+
+sol=lm(get_chi, values, method='trf',jac='3-point',max_nfev=2, args=(inputs,params))
+Hess = np.linalg.inv(np.dot(sol.jac.T, sol.jac))
+ave_error = (sol.fun).sum()/len(sol.fun)
+dFit =np.sqrt(np.diag(Hess*ave_error))
+print('variables = ' + str(sol.x))
+print('chi values = ' + str(sol.fun))
+
 
 for i,inp in enumerate(inputs):
     res = sumarise(values,[inp],params)

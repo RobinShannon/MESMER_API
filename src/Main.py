@@ -55,13 +55,13 @@ class MESMER_API():
         doc = self.tree.getroot()
         cond = doc.findall("{http://www.chem.leeds.ac.uk/mesmer}conditions")[0]
         PTs = cond.findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTpair")
-        chi_total = []
+        chi_total = 0
         for pt in PTs:
             eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")
             err = eig[0].attrib["error"]
             calc = eig[0].attrib["calcVal"]
             exp = eig[0].text
-            chi_total.append(abs(float(calc) - float(exp))/ float(err))
+            chi_total += (abs(float(calc) - float(exp))/ float(err))
         return chi_total
 
     def get_eigen_vs_expt(self):
