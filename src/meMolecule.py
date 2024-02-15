@@ -53,7 +53,10 @@ class meMolecule():
         data['name'] = name
         # using the xml element mol, get the details
         # first try to read the geometry
-        ase_mol = cls.read_geometry(cml)
+        try:
+            ase_mol = cls.read_geometry(cml)
+        except:
+            print("couldnt read geometry for species " + str(name))
         # then loop through the properties
         props = cml.findall("{http://www.xml-cml.org/schema}propertyList")[0].findall("{http://www.xml-cml.org/schema}property")
         for prop in props:
