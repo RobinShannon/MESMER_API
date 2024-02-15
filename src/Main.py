@@ -41,9 +41,9 @@ class MESMER_API():
                 prop = mol.findall("{http://www.chem.leeds.ac.uk/mesmer}energyTransferModel")[0]
                 prop.findall("{http://www.chem.leeds.ac.uk/mesmer}deltaEDown")[0].text = str(val)
             if deltaT_dict is not None and nid in deltaT_dict.keys():
-                val = delta_dict[nid]
+                val = deltaT_dict[nid]
                 prop = mol.findall("{http://www.chem.leeds.ac.uk/mesmer}energyTransferModel")[0]
-                prop.findall("{http://www.chem.leeds.ac.uk/mesmer}deltaEDown")[0].text = str(val)
+                prop.findall("{http://www.chem.leeds.ac.uk/mesmer}deltaEDownTExponent")[0].text = str(val)
             if imFreqs_dict is not None and nid in imFreqs_dict.keys():
                 imFreq = imFreqs_dict[nid]
                 props = mol.findall("{http://www.xml-cml.org/schema}propertyList")[0].findall(
