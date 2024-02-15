@@ -62,10 +62,10 @@ class MESMER_API():
                 val = ILT_A_dict[nid]
                 prop = reac.findall("{http://www.chem.leeds.ac.uk/mesmer}MCRCMethod")[0]
             prop.findall("{http://www.chem.leeds.ac.uk/mesmer}preExponential")[0].text = str(val)
-            if ILT_A_dict is not None and nid in ILT_A_dict.keys():
-                val = ILT_A_dict[nid]
+            if ILT_n_dict is not None and nid in ILT_n_dict.keys():
+                val = ILT_n_dict[nid]
                 prop = reac.findall("{http://www.chem.leeds.ac.uk/mesmer}MCRCMethod")[0]
-            prop.findall("{http://www.chem.leeds.ac.uk/mesmer}preExponential")[0].text = str(val)
+            prop.findall("{http://www.chem.leeds.ac.uk/mesmer}nInfinity")[0].text = str(val)
         tree = ET.ElementTree(doc2)
         tree.write("temp.xml")
 
