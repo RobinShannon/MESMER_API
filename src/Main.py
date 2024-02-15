@@ -21,23 +21,29 @@ class MESMER_API():
     def create_xml_shell(temperature = 298, pressure = 1):
         return
 
-    def modify_in_place(self, energies_dict, imFreqs_dict=None):
+    def modify_in_place(self, ene_dict, imFreqs_dict=None, delta_dict=None, deltaT_dict=None, ILT_A_dict=None, ILT_n_dict = None ):
         doc = self.tree.getroot()
         doc2 = copy.deepcopy(doc)
         mols = doc2.findall("{http://www.xml-cml.org/schema}moleculeList")[0].findall(
             "{http://www.xml-cml.org/schema}molecule")
         for mol in mols:
             nid = mol.attrib["id"]
-            if nid in energies_dict.keys():
-                zpe = energies_dict[nid]
+            if nid in ene_dict.keys():
+                val = ene_dict[nid]
                 props = mol.findall("{http://www.xml-cml.org/schema}propertyList")[0].findall(
                     "{http://www.xml-cml.org/schema}property")
                 for prop in props:
                     pid = prop.attrib["dictRef"]
                     if pid == "me:ZPE":
-                        zpe_orriginal = float(prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text)
-                        zpe_modified = zpe_orriginal + zpe
-                        prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text = str(zpe_modified)
+                        prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text = str(val)
+            if delta_dict is not None and nid in delta_dict.keys():
+                val = delta_dict[nid]
+                prop = mol.findall("{http://www.chem.leeds.ac.uk/mesmer}energyTransferModel")[0]
+                prop.findall("{http://www.chem.leeds.ac.uk/mesmer}deltaEDown")[0].text = str(val)
+            if deltaT_dict is not None and nid in deltaT_dict.keys():
+                val = delta_dict[nid]
+                prop = mol.findall("{http://www.chem.leeds.ac.uk/mesmer}energyTransferModel")[0]
+                prop.findall("{http://www.chem.leeds.ac.uk/mesmer}deltaEDown")[0].text = str(val)
             if imFreqs_dict is not None and nid in imFreqs_dict.keys():
                 imFreq = imFreqs_dict[nid]
                 props = mol.findall("{http://www.xml-cml.org/schema}propertyList")[0].findall(
@@ -48,6 +54,18 @@ class MESMER_API():
                         imFreq_orriginal = float(prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text)
                         imFreq_modified = imFreq_orriginal + imFreq
                         prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text = str(imFreq_modified)
+        reacs = doc2.findall("{http://www.xml-cml.org/schema}reactionList")[0].findall(
+            "{http://www.xml-cml.org/schema}reaction")
+        for reac in reacs:
+            nid = reac.attrib["id"]
+            if ILT_A_dict is not None and nid in ILT_A_dict.keys():
+                val = ILT_A_dict[nid]
+                prop = reac.findall("{http://www.chem.leeds.ac.uk/mesmer}MCRCMethod")[0]
+            prop.findall("{http://www.chem.leeds.ac.uk/mesmer}preExponential")[0].text = str(val)
+            if ILT_A_dict is not None and nid in ILT_A_dict.keys():
+                val = ILT_A_dict[nid]
+                prop = reac.findall("{http://www.chem.leeds.ac.uk/mesmer}MCRCMethod")[0]
+            prop.findall("{http://www.chem.leeds.ac.uk/mesmer}preExponential")[0].text = str(val)
         tree = ET.ElementTree(doc2)
         tree.write("temp.xml")
 
@@ -55,13 +73,13 @@ class MESMER_API():
         doc = self.tree.getroot()
         cond = doc.findall("{http://www.chem.leeds.ac.uk/mesmer}conditions")[0]
         PTs = cond.findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTpair")
-        chi_total = 0
+        chi_total = []
         for pt in PTs:
             eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")
             err = eig[0].attrib["error"]
             calc = eig[0].attrib["calcVal"]
             exp = eig[0].text
-            chi_total += (abs(float(calc) - float(exp))/ float(err))
+            chi_total.append((abs(float(calc) - float(exp))/ float(err)))
         return chi_total
 
     def get_eigen_vs_expt(self):
