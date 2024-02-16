@@ -80,14 +80,20 @@ class MESMER_API():
         for pt in PTs:
             try:
                 eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")
+                err = eig[0].attrib["error"]
+                calc = eig[0].attrib["calcVal"]
+                exp = eig[0].text
             except:
                 try:
                     eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalYield")
+                    err = eig[0].attrib["error"]
+                    calc = eig[0].attrib["calcVal"]
+                    exp = eig[0].text
                 except:
                     eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalRate")
-            err = eig[0].attrib["error"]
-            calc = eig[0].attrib["calcVal"]
-            exp = eig[0].text
+                    err = eig[0].attrib["error"]
+                    calc = eig[0].attrib["calcVal"]
+                    exp = eig[0].text
             chi_total.append((abs(float(calc) - float(exp))/ float(err)))
         return chi_total
 
