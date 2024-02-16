@@ -78,7 +78,13 @@ class MESMER_API():
         PTs = cond.findall("{http://www.chem.leeds.ac.uk/mesmer}PTs")[0].findall("{http://www.chem.leeds.ac.uk/mesmer}PTpair")
         chi_total = []
         for pt in PTs:
-            eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")
+            try:
+                eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalEigenvalue")
+            except:
+                try:
+                    eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalYield")
+                except:
+                    eig = pt.findall("{http://www.chem.leeds.ac.uk/mesmer}experimentalRate")
             err = eig[0].attrib["error"]
             calc = eig[0].attrib["calcVal"]
             exp = eig[0].text
