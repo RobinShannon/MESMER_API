@@ -72,25 +72,25 @@ class MESMER_API():
         tree = ET.ElementTree(doc2)
         tree.write("temp.xml")
 
-        def modify_in_place_relative_energies(self, energies_dict):
-            doc = self.tree.getroot()
-            doc2 = copy.deepcopy(doc)
-            mols = doc2.findall("{http://www.xml-cml.org/schema}moleculeList")[0].findall(
-                "{http://www.xml-cml.org/schema}molecule")
-            for mol in mols:
-                nid = mol.attrib["id"]
-                if nid in energies_dict.keys():
-                    zpe = energies_dict[nid]
-                    props = mol.findall("{http://www.xml-cml.org/schema}propertyList")[0].findall(
-                        "{http://www.xml-cml.org/schema}property")
-                    for prop in props:
-                        pid = prop.attrib["dictRef"]
-                        if pid == "me:ZPE":
-                            zpe_orriginal = float(prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text)
-                            zpe_modified = zpe_orriginal + zpe
-                            prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text = str(zpe_modified)
-            tree = ET.ElementTree(doc2)
-            tree.write("temp.xml")
+    def modify_in_place_relative_energies(self, energies_dict):
+        doc = self.tree.getroot()
+        doc2 = copy.deepcopy(doc)
+        mols = doc2.findall("{http://www.xml-cml.org/schema}moleculeList")[0].findall(
+            "{http://www.xml-cml.org/schema}molecule")
+        for mol in mols:
+            nid = mol.attrib["id"]
+            if nid in energies_dict.keys():
+                zpe = energies_dict[nid]
+                props = mol.findall("{http://www.xml-cml.org/schema}propertyList")[0].findall(
+                    "{http://www.xml-cml.org/schema}property")
+                for prop in props:
+                    pid = prop.attrib["dictRef"]
+                    if pid == "me:ZPE":
+                        zpe_orriginal = float(prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text)
+                        zpe_modified = zpe_orriginal + zpe
+                        prop.findall("{http://www.xml-cml.org/schema}scalar")[0].text = str(zpe_modified)
+        tree = ET.ElementTree(doc2)
+        tree.write("temp.xml")
 
     def get_chi_sq(self):
         doc = self.tree.getroot()
